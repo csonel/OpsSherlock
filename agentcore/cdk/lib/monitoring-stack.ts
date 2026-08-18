@@ -1,4 +1,4 @@
-import { Duration, Stack, type StackProps } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -26,6 +26,14 @@ export class MonitoringStack extends Stack {
   constructor(scope: Construct, id: string, props: MonitoringStackProps) {
     super(scope, id, props);
 
+    // Explicit log group instead of the deprecated `logRetention` prop, which
+    // spawns a legacy LogRetention custom-resource provider Lambda (the one that
+    // logs the url.parse() DeprecationWarning).
+    const invokerLogs = new logs.LogGroup(this, 'OpsSherlockInvokerLogs', {
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     const invoker = new lambda.Function(this, 'OpsSherlockInvoker', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'handler.handler',
@@ -36,7 +44,7 @@ export class MonitoringStack extends Stack {
       // Overlap protection comes from the 5-minute spacing + Phase 3 memory
       // dedup — not a reserved-concurrency slot, which the account's low
       // concurrency limit rejects (would drop unreserved below the floor of 10).
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      logGroup: invokerLogs,
       environment: {
         RUNTIME_ARN: props.runtimeArn,
       },
