@@ -1,10 +1,13 @@
 import os
+import re
 
 from strands import Agent
 from strands import tool
 from strands.models import BedrockModel
 from bedrock_agentcore import BedrockAgentCoreApp
 from dotenv import load_dotenv
+
+from tools import *
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -13,7 +16,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "eu.amazon.nova-micro-v1:0")
 
 app = BedrockAgentCoreApp()
@@ -24,8 +26,19 @@ model = BedrockModel(
     region_name=AWS_REGION,
 )
 
-SYSTEM_PROMPT = """You are OpsSherlock, a helpful SRE assistant. 
-    You will be given a prompt from a user, and you will respond with a helpful answer.
+SYSTEM_PROMPT = """You are OpsSherlock, an autonomous SRE assistant that investigates
+    incidents, finds root causes, safely remediates, verifies recovery, and involves
+    engineers only when a decision is needed.
+
+    Your workflow for an incident:
+    1. Use rca_agent to investigate and produce a root cause analysis.
+    2. Use remediation_agent to take the safest reversible action and verify recovery.
+    3. Escalate to a human with the escalate tool when — and only when — a decision is
+       needed: recovery could not be confirmed, the root cause is ambiguous, or the
+       safest remediation is too risky to take unattended. Do not escalate routine
+       incidents that were resolved and verified.
+
+    Report clearly: what happened, what you did, and whether recovery was confirmed.
     """
 
 # ---------------------------------------------------------------------------
@@ -42,7 +55,19 @@ _rca_agent = Agent(
     4. Propose 2-3 concrete remediation options ranked by risk.
     
     Be precise. Use technical language. Cite specific metric values and log lines.
-    """
+
+    If you don't know which cluster is affected, call list_clusters() first, then
+    pass the cluster name to the Kubernetes tools.
+    """,
+    tools=[
+        get_cloudwatch_alarms,
+        get_metric_statistics,
+        query_logs,
+        list_clusters,
+        kubectl_get,
+        kubectl_describe,
+        pod_logs,
+    ],
 )
 
 _remediation_agent = Agent(
@@ -52,10 +77,27 @@ _remediation_agent = Agent(
     1. Inspect the current state of affected workloads with kubectl.
     2. Propose and execute the safest remediation action (rollback, restart, scale).
     3. Always prefer reversible actions (rollback > restart > scale).
-    4. Confirm the action taken or explain why no action was taken.
-    
+    4. After acting, call verify_recovery to confirm the incident is resolved
+       (alarm back to OK and/or the deployment fully ready).
+    5. Confirm the action taken and the recovery result, or explain why no action
+       was taken. If recovery is NOT confirmed, say so clearly.
+
+    Pass the affected cluster (named in the root cause analysis) to every tool
+    via its `cluster` argument. If the cluster is unknown, call list_clusters().
+
     In DRY_RUN mode, commands are simulated and safe to run.
-    """
+    """,
+    tools=[
+        list_clusters,
+        kubectl_get,
+        kubectl_describe,
+        pod_logs,
+        rollout_restart,
+        scale_deployment,
+        rollback_deployment,
+        helm_rollback,
+        verify_recovery,
+    ],
 )
 
 @tool
@@ -78,8 +120,27 @@ agent = Agent(
     tools=[
         rca_agent,
         remediation_agent,
+        escalate,
     ],
 )
+
+# ---------------------------------------------------------------------------
+# Output formatting
+# ---------------------------------------------------------------------------
+
+_THINKING_RE = re.compile(r"<thinking>(.*?)</thinking>", re.DOTALL)
+
+
+def format_response(text: str) -> str:
+    """Turn inline <thinking>...</thinking> blocks into a styled reasoning
+    blockquote, kept visually distinct from the final answer."""
+
+    def _to_blockquote(match: re.Match) -> str:
+        reasoning = match.group(1).strip().replace("\n", "\n> ")
+        return f"\n\n> *Reasoning:* {reasoning}\n\n---\n\n"
+
+    return _THINKING_RE.sub(_to_blockquote, text).strip()
+
 
 # ---------------------------------------------------------------------------
 # Entry point
@@ -93,9 +154,13 @@ async def agent_invocation(payload):
         "prompt", "No prompt found in input, please guide customer to create a json payload with prompt key"
     )
     stream = agent.stream_async(user_message)
+    chunks = []
     async for event in stream:
-        print(event)
-        yield event
+        # Collect only the human-readable text chunks; skip raw metadata events
+        # (tool calls, message deltas, lifecycle) that render as noisy JSON.
+        if "data" in event:
+            chunks.append(event["data"])
+    yield format_response("".join(chunks))
 
 
 if __name__ == "__main__":
