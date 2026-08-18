@@ -1,5 +1,5 @@
 # OpsSherlock
-OpsSherlock is a cloud-agnostic SRE agent that investigates incidents, finds root causes, safely remediates issues, verifies recovery, and involves engineers only when a decision is needed.
+OpsSherlock is an AWS-native SRE agent that investigates incidents, finds root causes, safely remediates issues, verifies recovery, and involves engineers only when a decision is needed.
 
 his project was created with the [AgentCore CLI](https://github.com/aws/agentcore-cli).
 
