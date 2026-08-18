@@ -6,4 +6,8 @@ requires-python = ">=3.14"
 dependencies = [
     "bedrock-agentcore",
     "strands-agents",
+    "strands-agents-tools",
+    "python-dotenv",
+    "boto3",
+    "kubernetes",
 ]
