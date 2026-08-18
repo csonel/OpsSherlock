@@ -15,7 +15,8 @@
       "codeLocation": "app/",
       "runtimeVersion": "PYTHON_3_14",
       "networkMode": "PUBLIC",
-      "protocol": "HTTP"
+      "protocol": "HTTP",
+      "additionalPolicies": ["policies/observability.json"]
     }
   ],
   "memories": [],
