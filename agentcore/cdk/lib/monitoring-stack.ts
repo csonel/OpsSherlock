@@ -33,8 +33,9 @@ export class MonitoringStack extends Stack {
       // A full RCA -> remediate -> verify pass can take a while; give it room.
       timeout: Duration.minutes(5),
       memorySize: 256,
-      // One sweep at a time: avoids overlapping scans stacking up.
-      reservedConcurrentExecutions: 1,
+      // Overlap protection comes from the 5-minute spacing + Phase 3 memory
+      // dedup — not a reserved-concurrency slot, which the account's low
+      // concurrency limit rejects (would drop unreserved below the floor of 10).
       logRetention: logs.RetentionDays.ONE_WEEK,
       environment: {
         RUNTIME_ARN: props.runtimeArn,
