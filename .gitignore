@@ -221,3 +221,6 @@ __marimo__/
 # the Python build "lib/" the generic rule above targets. Keep them tracked.
 !agentcore/cdk/lib/
 !agentcore/cdk/lib/**
+
+# Internal planning docs — kept local, not tracked
+docs/
