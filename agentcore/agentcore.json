@@ -10,7 +10,7 @@
   "runtimes": [
     {
       "name": "OpsSherlock",
-      "build": "CodeZip",
+      "build": "Container",
       "entrypoint": "agent.py",
       "codeLocation": "app/",
       "runtimeVersion": "PYTHON_3_14",
