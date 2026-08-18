@@ -1,0 +1,9 @@
+[project]
+name = "OpsSherlock"
+version = "0.1.0"
+requires-python = ">=3.14"
+
+dependencies = [
+    "bedrock-agentcore",
+    "strands-agents",
+]

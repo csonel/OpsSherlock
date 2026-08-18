@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "OpsSherlock": {
+            "runtimeId": "OpsSherlock_OpsSherlock-5tqcX04mEH",
+            "runtimeArn": "arn:aws:bedrock-agentcore:eu-central-1:264301052612:runtime/OpsSherlock_OpsSherlock-5tqcX04mEH",
+            "roleArn": "arn:aws:iam::264301052612:role/AgentCore-OpsSherlock-def-ApplicationAgentOpsSherlo-iDW0TS7sql4o"
+          }
+        },
+        "stackName": "AgentCore-OpsSherlock-default",
+        "deployHash": "9e30532b5f206427"
+      }
+    }
+  }
+}
