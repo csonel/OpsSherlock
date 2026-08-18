@@ -15,12 +15,14 @@ export interface MonitoringStackProps extends StackProps {
 }
 
 /**
- * Active-monitoring stack for OpsSherlock (Phase 2 — pull only).
+ * Active-monitoring stack for OpsSherlock (Phases 2 + 4 — pull and push).
  *
- * A scheduled EventBridge rule fires the invoker Lambda every few minutes; the
- * Lambda calls InvokeAgentRuntime with a "scan all clusters" prompt so the agent
- * reports (in DRY_RUN) anything unhealthy. Kept separate from the CLI-vended
- * AgentCore stack so it is never regenerated.
+ * Pull: a scheduled EventBridge rule fires the invoker Lambda every few minutes
+ * with a "scan all clusters" prompt. Push: an EventBridge rule forwards CloudWatch
+ * alarm transitions into ALARM to the same Lambda, which builds a targeted prompt
+ * from the event. The Lambda calls InvokeAgentRuntime; in DRY_RUN the agent reports
+ * what it would do. Kept separate from the CLI-vended AgentCore stack so it is
+ * never regenerated.
  */
 export class MonitoringStack extends Stack {
   constructor(scope: Construct, id: string, props: MonitoringStackProps) {
@@ -66,6 +68,21 @@ export class MonitoringStack extends Stack {
           event: events.RuleTargetInput.fromObject({ source: 'schedule' }),
         }),
       ],
+    });
+
+    // Push path (Phase 4): forward CloudWatch alarms entering ALARM to the
+    // invoker. The full event is passed through unchanged (no input override) so
+    // the handler can read detail.alarmName / detail.state and build a targeted
+    // prompt. Phase 3 memory dedup keeps a pushed alarm and the periodic sweep
+    // from investigating the same incident twice.
+    new events.Rule(this, 'OpsSherlockAlarmRule', {
+      description: 'Forward CloudWatch alarms (-> ALARM) to OpsSherlock (push monitoring)',
+      eventPattern: {
+        source: ['aws.cloudwatch'],
+        detailType: ['CloudWatch Alarm State Change'],
+        detail: { state: { value: ['ALARM'] } },
+      },
+      targets: [new targets.LambdaFunction(invoker)],
     });
   }
 }
