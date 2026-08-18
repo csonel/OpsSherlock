@@ -52,25 +52,25 @@ agentcore deploy
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `agentcore create` | Create a new AgentCore project |
-| `agentcore add` | Add resources (agent, memory, credential, gateway, evaluator, policy) |
-| `agentcore remove` | Remove resources |
-| `agentcore dev` | Run agent locally with hot-reload |
-| `agentcore deploy` | Deploy to AWS via CDK |
-| `agentcore status` | Show deployment status |
-| `agentcore invoke` | Invoke agent (local or deployed) |
-| `agentcore logs` | View agent logs |
-| `agentcore traces` | View agent traces |
-| `agentcore eval` | Run evaluations |
-| `agentcore package` | Package agent artifacts |
-| `agentcore validate` | Validate configuration |
-| `agentcore pause` | Pause a deployed agent |
-| `agentcore resume` | Resume a paused agent |
-| `agentcore fetch` | Fetch remote resource definitions |
-| `agentcore import` | Import existing resources |
-| `agentcore update` | Check for CLI updates |
+| Command              | Description                                                           |
+|----------------------|-----------------------------------------------------------------------|
+| `agentcore create`   | Create a new AgentCore project                                        |
+| `agentcore add`      | Add resources (agent, memory, credential, gateway, evaluator, policy) |
+| `agentcore remove`   | Remove resources                                                      |
+| `agentcore dev`      | Run agent locally with hot-reload                                     |
+| `agentcore deploy`   | Deploy to AWS via CDK                                                 |
+| `agentcore status`   | Show deployment status                                                |
+| `agentcore invoke`   | Invoke agent (local or deployed)                                      |
+| `agentcore logs`     | View agent logs                                                       |
+| `agentcore traces`   | View agent traces                                                     |
+| `agentcore eval`     | Run evaluations                                                       |
+| `agentcore package`  | Package agent artifacts                                               |
+| `agentcore validate` | Validate configuration                                                |
+| `agentcore pause`    | Pause a deployed agent                                                |
+| `agentcore resume`   | Resume a paused agent                                                 |
+| `agentcore fetch`    | Fetch remote resource definitions                                     |
+| `agentcore import`   | Import existing resources                                             |
+| `agentcore update`   | Check for CLI updates                                                 |
 
 ## Configuration
 
@@ -80,16 +80,16 @@ The project uses a **flat resource model** — agents, memories, credentials, ga
 
 ## Resources
 
-| Resource | Purpose |
-| --- | --- |
-| Agent (runtime) | HTTP, MCP, or A2A agent deployed to AgentCore Runtime |
-| Memory | Persistent context storage with configurable strategies |
-| Credential | API key or OAuth credential providers |
-| Gateway | MCP gateway that routes tool calls to targets |
-| Gateway Target | Tool implementation (Lambda, MCP server, OpenAPI, Smithy, API Gateway) |
-| Evaluator | Custom LLM-as-a-Judge or code-based evaluation |
-| Online Eval Config | Continuous evaluation pipeline for deployed agents |
-| Policy | Cedar authorization policies for gateway tools |
+| Resource           | Purpose                                                                |
+|--------------------|------------------------------------------------------------------------|
+| Agent (runtime)    | HTTP, MCP, or A2A agent deployed to AgentCore Runtime                  |
+| Memory             | Persistent context storage with configurable strategies                |
+| Credential         | API key or OAuth credential providers                                  |
+| Gateway            | MCP gateway that routes tool calls to targets                          |
+| Gateway Target     | Tool implementation (Lambda, MCP server, OpenAPI, Smithy, API Gateway) |
+| Evaluator          | Custom LLM-as-a-Judge or code-based evaluation                         |
+| Online Eval Config | Continuous evaluation pipeline for deployed agents                     |
+| Policy             | Cedar authorization policies for gateway tools                         |
 
 ### Agent Types
 

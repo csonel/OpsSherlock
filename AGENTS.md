@@ -49,9 +49,9 @@ OpsSherlock/
 The `agentcore/.llm-context/` directory contains TypeScript type definitions optimized for AI coding assistants. Each
 file maps to a JSON config file and includes validation constraints as comments (`@regex`, `@min`, `@max`).
 
-| JSON Config | Schema File | Root Type |
-| --- | --- | --- |
-| `agentcore/agentcore.json` | `agentcore/.llm-context/agentcore.ts` | `AgentCoreProjectSpec` |
+| JSON Config                  | Schema File                             | Root Type               |
+|------------------------------|-----------------------------------------|-------------------------|
+| `agentcore/agentcore.json`   | `agentcore/.llm-context/agentcore.ts`   | `AgentCoreProjectSpec`  |
 | `agentcore/aws-targets.json` | `agentcore/.llm-context/aws-targets.ts` | `AwsDeploymentTarget[]` |
 
 ### Key Types
@@ -152,66 +152,66 @@ Run `agentcore --help` or `agentcore <command> --help` for full flags. Commonly 
 
 **Project lifecycle**
 
-| Command | Description |
-| --- | --- |
-| `agentcore create` | Create a new project |
-| `agentcore dev` | Run agent locally with hot-reload |
-| `agentcore deploy` | Deploy to AWS |
-| `agentcore invoke` | Invoke agent (local or deployed) |
-| `agentcore status` | Show deployment status |
-| `agentcore validate` | Validate configuration |
-| `agentcore package` | Package agent artifacts |
-| `agentcore import` | Import resources from a Bedrock AgentCore Starter Toolkit project |
+| Command              | Description                                                       |
+|----------------------|-------------------------------------------------------------------|
+| `agentcore create`   | Create a new project                                              |
+| `agentcore dev`      | Run agent locally with hot-reload                                 |
+| `agentcore deploy`   | Deploy to AWS                                                     |
+| `agentcore invoke`   | Invoke agent (local or deployed)                                  |
+| `agentcore status`   | Show deployment status                                            |
+| `agentcore validate` | Validate configuration                                            |
+| `agentcore package`  | Package agent artifacts                                           |
+| `agentcore import`   | Import resources from a Bedrock AgentCore Starter Toolkit project |
 
 **Resources**
 
-| Command | Description |
-| --- | --- |
-| `agentcore add <resource>` | Add agent, memory, credential, gateway, gateway-target, evaluator, online-eval, online-insights, knowledge-base, harness, policy-engine, policy, payment-manager, payment-connector, config-bundle, dataset, runtime-endpoint |
-| `agentcore remove <resource>` | Remove any resource |
-| `agentcore export harness` | Export a harness to a Strands runtime agent under `app/<agentName>/` |
+| Command                       | Description                                                                                                                                                                                                                   |
+|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `agentcore add <resource>`    | Add agent, memory, credential, gateway, gateway-target, evaluator, online-eval, online-insights, knowledge-base, harness, policy-engine, policy, payment-manager, payment-connector, config-bundle, dataset, runtime-endpoint |
+| `agentcore remove <resource>` | Remove any resource                                                                                                                                                                                                           |
+| `agentcore export harness`    | Export a harness to a Strands runtime agent under `app/<agentName>/`                                                                                                                                                          |
 
 **Jobs (run, view, archive, lifecycle)**
 
-| Command | Description |
-| --- | --- |
-| `agentcore run eval` | Run on-demand evaluation against agent traces |
-| `agentcore run batch-evaluation` | Run evaluators across all sessions at scale |
-| `agentcore run recommendation` | Optimize prompts or tool descriptions from real traces |
-| `agentcore run insights` _[preview]_ | Run failure-pattern analysis across sessions |
-| `agentcore run ab-test` | Start an A/B test (config-bundle or target-based) |
-| `agentcore run ingest` | Start a fresh ingestion job for every data source on a deployed knowledge base |
-| `agentcore view <type>` | List or view jobs (recommendation, batch-evaluation, ab-test, insights) |
-| `agentcore archive <type>` | Delete a job on the service + clear local history |
-| `agentcore stop <type>` | Stop a running batch-evaluation or ab-test |
-| `agentcore promote ab-test` | Apply the winning variant to `agentcore.json` |
-| `agentcore pause <type>` / `agentcore resume <type>` | Pause/resume a deployed online-eval, online-insights, or ab-test |
+| Command                                              | Description                                                                    |
+|------------------------------------------------------|--------------------------------------------------------------------------------|
+| `agentcore run eval`                                 | Run on-demand evaluation against agent traces                                  |
+| `agentcore run batch-evaluation`                     | Run evaluators across all sessions at scale                                    |
+| `agentcore run recommendation`                       | Optimize prompts or tool descriptions from real traces                         |
+| `agentcore run insights` _[preview]_                 | Run failure-pattern analysis across sessions                                   |
+| `agentcore run ab-test`                              | Start an A/B test (config-bundle or target-based)                              |
+| `agentcore run ingest`                               | Start a fresh ingestion job for every data source on a deployed knowledge base |
+| `agentcore view <type>`                              | List or view jobs (recommendation, batch-evaluation, ab-test, insights)        |
+| `agentcore archive <type>`                           | Delete a job on the service + clear local history                              |
+| `agentcore stop <type>`                              | Stop a running batch-evaluation or ab-test                                     |
+| `agentcore promote ab-test`                          | Apply the winning variant to `agentcore.json`                                  |
+| `agentcore pause <type>` / `agentcore resume <type>` | Pause/resume a deployed online-eval, online-insights, or ab-test               |
 
 **Config bundles & datasets**
 
-| Command | Description |
-| --- | --- |
-| `agentcore config-bundle versions` (alias `cb versions`) | List version history for a bundle |
-| `agentcore config-bundle diff` | Diff two versions of a bundle |
-| `agentcore config-bundle create-branch` | Create a new branch on an existing bundle |
-| `agentcore dataset download` | Download a dataset version locally |
-| `agentcore dataset publish-version` | Publish a new dataset version |
-| `agentcore dataset remove-version` | Remove a dataset version |
+| Command                                                  | Description                               |
+|----------------------------------------------------------|-------------------------------------------|
+| `agentcore config-bundle versions` (alias `cb versions`) | List version history for a bundle         |
+| `agentcore config-bundle diff`                           | Diff two versions of a bundle             |
+| `agentcore config-bundle create-branch`                  | Create a new branch on an existing bundle |
+| `agentcore dataset download`                             | Download a dataset version locally        |
+| `agentcore dataset publish-version`                      | Publish a new dataset version             |
+| `agentcore dataset remove-version`                       | Remove a dataset version                  |
 
 **Observability & history**
 
-| Command | Description |
-| --- | --- |
-| `agentcore logs` | Stream/search agent runtime logs |
-| `agentcore logs evals` | Stream/search online-eval logs |
+| Command                                          | Description                                |
+|--------------------------------------------------|--------------------------------------------|
+| `agentcore logs`                                 | Stream/search agent runtime logs           |
+| `agentcore logs evals`                           | Stream/search online-eval logs             |
 | `agentcore traces list` / `agentcore traces get` | List recent traces or download one to JSON |
-| `agentcore evals history` | View past on-demand eval results |
+| `agentcore evals history`                        | View past on-demand eval results           |
 
 **Utilities**
 
-| Command | Description |
-| --- | --- |
-| `agentcore fetch access` | Fetch access info for deployed gateway or agent |
-| `agentcore feedback` | Send feedback (with optional screenshot) to the AgentCore team |
-| `agentcore update` | Check for and install CLI updates |
-| `agentcore telemetry` | View or change telemetry preferences |
+| Command                  | Description                                                    |
+|--------------------------|----------------------------------------------------------------|
+| `agentcore fetch access` | Fetch access info for deployed gateway or agent                |
+| `agentcore feedback`     | Send feedback (with optional screenshot) to the AgentCore team |
+| `agentcore update`       | Check for and install CLI updates                              |
+| `agentcore telemetry`    | View or change telemetry preferences                           |
