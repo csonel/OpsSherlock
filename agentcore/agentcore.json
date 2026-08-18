@@ -16,7 +16,13 @@
       "runtimeVersion": "PYTHON_3_14",
       "networkMode": "PUBLIC",
       "protocol": "HTTP",
-      "additionalPolicies": ["policies/observability.json"]
+      "additionalPolicies": ["policies/observability.json"],
+      "envVars": [
+        {
+          "name": "AWS_REGION",
+          "value": "eu-central-1"
+        }
+      ]
     }
   ],
   "memories": [],
