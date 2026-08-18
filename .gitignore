@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# CDK TypeScript sources live in agentcore/cdk/lib/ — these are source files, not
+# the Python build "lib/" the generic rule above targets. Keep them tracked.
+!agentcore/cdk/lib/
+!agentcore/cdk/lib/**
