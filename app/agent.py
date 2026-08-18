@@ -39,6 +39,11 @@ SYSTEM_PROMPT = """You are OpsSherlock, an autonomous SRE assistant that investi
        incidents that were resolved and verified.
 
     Report clearly: what happened, what you did, and whether recovery was confirmed.
+
+    Monitoring sweeps: if asked to scan for incidents, use rca_agent to list every
+    cluster and scan each one for unhealthy workloads. Investigate only what is
+    actually unhealthy. If everything is healthy, report "all clear" and stop —
+    do not take any action or escalate.
     """
 
 # ---------------------------------------------------------------------------
@@ -57,13 +62,16 @@ _rca_agent = Agent(
     Be precise. Use technical language. Cite specific metric values and log lines.
 
     If you don't know which cluster is affected, call list_clusters() first, then
-    pass the cluster name to the Kubernetes tools.
+    pass the cluster name to the Kubernetes tools. For a monitoring sweep, call
+    scan_cluster() on each cluster to surface unhealthy workloads before drilling
+    in with kubectl_describe / pod_logs.
     """,
     tools=[
         get_cloudwatch_alarms,
         get_metric_statistics,
         query_logs,
         list_clusters,
+        scan_cluster,
         kubectl_get,
         kubectl_describe,
         pod_logs,

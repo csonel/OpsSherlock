@@ -7,6 +7,7 @@ __all__ = [
     "get_metric_statistics",
     "query_logs",
     "list_clusters",
+    "scan_cluster",
     "kubectl_get",
     "kubectl_describe",
     "pod_logs",

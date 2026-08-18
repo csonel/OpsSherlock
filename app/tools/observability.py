@@ -152,6 +152,103 @@ def list_clusters() -> str:
         return f"Error listing EKS clusters: {e}"
 
 
+# Container waiting reasons that indicate a real problem (not transient startup).
+_BAD_WAITING = {
+    "CrashLoopBackOff",
+    "ImagePullBackOff",
+    "ErrImagePull",
+    "CreateContainerConfigError",
+    "CreateContainerError",
+    "InvalidImageName",
+}
+
+
+@tool
+def scan_cluster(cluster: str = "") -> str:
+    """Scan an entire EKS cluster (all namespaces) for unhealthy workloads.
+
+    Read-only. Intended for scheduled monitoring sweeps: it surfaces pods that are
+    pending/failed/crash-looping or restarting heavily, deployments that are not
+    fully ready, and recent Warning events — returning only the anomalies so the
+    agent can decide what to investigate.
+
+    Args:
+        cluster: EKS cluster to scan. Defaults to EKS_CLUSTER_NAME if unset.
+            Use list_clusters() to discover names.
+
+    Returns:
+        "No unhealthy workloads found..." when the cluster is healthy, otherwise a
+        JSON summary of anomalies, or an error string.
+    """
+    name = cluster or "(default)"
+    try:
+        load_k8s(cluster or None)
+        core = k8s_client.CoreV1Api()
+        apps = k8s_client.AppsV1Api()
+
+        unhealthy_pods = []
+        for p in core.list_pod_for_all_namespaces().items:
+            statuses = p.status.container_statuses or []
+            restarts = sum(cs.restart_count for cs in statuses)
+            waiting = [
+                cs.state.waiting.reason
+                for cs in statuses
+                if cs.state and cs.state.waiting and cs.state.waiting.reason
+            ]
+            bad_wait = [w for w in waiting if w in _BAD_WAITING]
+            if p.status.phase in ("Pending", "Failed", "Unknown") or bad_wait or restarts >= 5:
+                unhealthy_pods.append(
+                    {
+                        "namespace": p.metadata.namespace,
+                        "name": p.metadata.name,
+                        "phase": p.status.phase,
+                        "restarts": restarts,
+                        "waiting": bad_wait or waiting,
+                    }
+                )
+
+        not_ready_deployments = []
+        for d in apps.list_deployment_for_all_namespaces().items:
+            desired = d.spec.replicas or 0
+            ready = d.status.ready_replicas or 0
+            if ready < desired:
+                not_ready_deployments.append(
+                    {
+                        "namespace": d.metadata.namespace,
+                        "name": d.metadata.name,
+                        "ready": f"{ready}/{desired}",
+                    }
+                )
+
+        warning_events = [
+            {
+                "namespace": e.metadata.namespace,
+                "reason": e.reason,
+                "object": f"{e.involved_object.kind}/{e.involved_object.name}",
+                "message": (e.message or "")[:200],
+            }
+            for e in core.list_event_for_all_namespaces(
+                field_selector="type=Warning"
+            ).items
+        ][:50]  # cap to keep the summary token-bounded
+
+        if not (unhealthy_pods or not_ready_deployments or warning_events):
+            return f"No unhealthy workloads found in cluster {name}."
+        return json.dumps(
+            {
+                "cluster": name,
+                "unhealthy_pods": unhealthy_pods,
+                "not_ready_deployments": not_ready_deployments,
+                "warning_events": warning_events,
+            },
+            indent=2,
+        )
+    except ApiException as e:
+        return f"Kubernetes API error: {e.status} {e.reason}"
+    except Exception as e:
+        return f"Error scanning cluster {name}: {e}"
+
+
 @tool
 def kubectl_get(
     resource_type: str, namespace: str = "default", cluster: str = ""
