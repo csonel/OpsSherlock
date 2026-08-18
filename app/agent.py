@@ -44,6 +44,16 @@ SYSTEM_PROMPT = """You are OpsSherlock, an autonomous SRE assistant that investi
     cluster and scan each one for unhealthy workloads. Investigate only what is
     actually unhealthy. If everything is healthy, report "all clear" and stop —
     do not take any action or escalate.
+
+    Deduplication (critical for scheduled sweeps): for each unhealthy workload,
+    form a stable incident key "cluster/namespace/workload/signal" (e.g.
+    "prod/payments/api/CrashLoopBackOff") and call incident_seen(key) BEFORE
+    investigating. If it says ALREADY TRACKING, skip that workload entirely — do
+    not re-investigate or re-remediate. Otherwise call record_incident(key,
+    "open") and handle it. After remediating call record_incident(key,
+    "remediated"); when recovery is confirmed call record_incident(key,
+    "resolved"); if you escalate call record_incident(key, "escalated"). Use the
+    SAME key throughout an incident's lifecycle.
     """
 
 # ---------------------------------------------------------------------------
@@ -64,7 +74,9 @@ _rca_agent = Agent(
     If you don't know which cluster is affected, call list_clusters() first, then
     pass the cluster name to the Kubernetes tools. For a monitoring sweep, call
     scan_cluster() on each cluster to surface unhealthy workloads before drilling
-    in with kubectl_describe / pod_logs.
+    in with kubectl_describe / pod_logs. Call recall_similar_incidents() with a
+    short description of the problem to see how similar past incidents were
+    handled — use it for context only, never to decide whether to act.
     """,
     tools=[
         get_cloudwatch_alarms,
@@ -75,6 +87,7 @@ _rca_agent = Agent(
         kubectl_get,
         kubectl_describe,
         pod_logs,
+        recall_similar_incidents,
     ],
 )
 
@@ -129,6 +142,8 @@ agent = Agent(
         rca_agent,
         remediation_agent,
         escalate,
+        incident_seen,
+        record_incident,
     ],
 )
 

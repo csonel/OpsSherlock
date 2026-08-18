@@ -1,6 +1,7 @@
 from .observability import *
 from .remediation import *
 from .recovery import *
+from .memory import *
 
 __all__ = [
     "get_cloudwatch_alarms",
@@ -17,4 +18,7 @@ __all__ = [
     "helm_rollback",
     "verify_recovery",
     "escalate",
+    "incident_seen",
+    "record_incident",
+    "recall_similar_incidents",
 ]

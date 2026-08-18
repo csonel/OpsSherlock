@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "IncidentMemoryEvents",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:CreateEvent",
+        "bedrock-agentcore:ListEvents",
+        "bedrock-agentcore:GetEvent",
+        "bedrock-agentcore:RetrieveMemoryRecords",
+        "bedrock-agentcore:GetMemoryRecord"
+      ],
+      "Resource": "arn:aws:bedrock-agentcore:*:*:memory/*"
+    },
+    {
+      "Sid": "IncidentMemoryDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:ListMemories",
+        "bedrock-agentcore:GetMemory"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
