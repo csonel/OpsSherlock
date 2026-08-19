@@ -31,6 +31,21 @@ SCAN_PROMPT = (
 )
 
 
+def _metric_context(detail: dict) -> str:
+    """Summarize the alarm's metric(s) and dimensions (e.g. the EC2 InstanceId)
+    so the agent knows which resource to investigate."""
+    metrics = (detail.get("configuration") or {}).get("metrics") or []
+    parts = []
+    for m in metrics:
+        metric = (m.get("metricStat") or {}).get("metric") or {}
+        ns = metric.get("namespace")
+        mname = metric.get("name")
+        dims = metric.get("dimensions") or {}
+        if ns or mname or dims:
+            parts.append(f"{ns or '?'}/{mname or '?'} dimensions={json.dumps(dims)}")
+    return f" Metric(s): {'; '.join(parts)}." if parts else ""
+
+
 def _build_prompt(event: dict) -> str:
     if event.get("source") == "aws.cloudwatch":
         detail = event.get("detail") or {}
@@ -38,7 +53,8 @@ def _build_prompt(event: dict) -> str:
         name = detail.get("alarmName", "unknown")
         return (
             f"CloudWatch alarm '{name}' entered {state.get('value', 'ALARM')}: "
-            f"{state.get('reason', '')} Investigate and remediate."
+            f"{state.get('reason', '')}{_metric_context(detail)} "
+            "Investigate and remediate."
         )
     # Scheduled sweep (default).
     return SCAN_PROMPT

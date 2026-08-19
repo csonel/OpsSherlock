@@ -47,8 +47,9 @@ SYSTEM_PROMPT = """You are OpsSherlock, an autonomous SRE assistant that investi
 
     Deduplication (critical for scheduled sweeps): for each unhealthy workload,
     form a stable incident key "cluster/namespace/workload/signal" (e.g.
-    "prod/payments/api/CrashLoopBackOff") and call incident_seen(key) BEFORE
-    investigating. If it says ALREADY TRACKING, skip that workload entirely — do
+    "prod/payments/api/CrashLoopBackOff") — for a non-Kubernetes resource use an
+    analogous key such as "ec2/<instance-id>/<alarm-or-signal>" — and call
+    incident_seen(key) BEFORE investigating. If it says ALREADY TRACKING, skip that workload entirely — do
     not re-investigate or re-remediate. Otherwise call record_incident(key,
     "open") and handle it. After remediating call record_incident(key,
     "remediated"); when recovery is confirmed call record_incident(key,
@@ -77,6 +78,14 @@ _rca_agent = Agent(
     in with kubectl_describe / pod_logs. Call recall_similar_incidents() with a
     short description of the problem to see how similar past incidents were
     handled — use it for context only, never to decide whether to act.
+
+    For an EC2 alarm (metric namespace AWS/EC2), take the instance id from the
+    alarm's InstanceId dimension and use describe_instance() and
+    get_instance_status() to inspect it, plus get_metric_statistics(namespace=
+    "AWS/EC2", metric_name="CPUUtilization", dimension_name="InstanceId",
+    dimension_value=<id>) for the trend. Distinguish a failed *instance* status
+    check (points at the instance) from a failed *system* status check (points at
+    the host) — it changes the safest remediation.
     """,
     tools=[
         get_cloudwatch_alarms,
@@ -87,6 +96,8 @@ _rca_agent = Agent(
         kubectl_get,
         kubectl_describe,
         pod_logs,
+        describe_instance,
+        get_instance_status,
         recall_similar_incidents,
     ],
 )
@@ -106,6 +117,12 @@ _remediation_agent = Agent(
     Pass the affected cluster (named in the root cause analysis) to every tool
     via its `cluster` argument. If the cluster is unknown, call list_clusters().
 
+    For an EC2 instance: prefer reboot_instance for a failed instance status check
+    or a hung/overloaded instance; use stop_instance then start_instance to recover
+    a failed system status check (migrates to new host hardware). Never terminate
+    an instance. After acting, call verify_recovery(alarm_name=<the alarm>) to
+    confirm the alarm returns to OK.
+
     In DRY_RUN mode, commands are simulated and safe to run.
     """,
     tools=[
@@ -117,6 +134,9 @@ _remediation_agent = Agent(
         scale_deployment,
         rollback_deployment,
         helm_rollback,
+        reboot_instance,
+        stop_instance,
+        start_instance,
         verify_recovery,
     ],
 )
